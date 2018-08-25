@@ -15,16 +15,9 @@
     android:textColor="#ffffff"
     android:textSize="24sp"
     android:textStyle="bold|italic"/>
-    <TextView
-        android:id="@+id/appwidget_movie_times"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:background="#09C"
-        android:contentDescription="@string/appwidget_text"
-        android:textColor="#ffffff"
-        android:textSize="12sp"
-        android:textStyle="bold|italic"/>
-
+    <ListView
+        android:id="@+id/widget_list_movie_screenings"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 
 </LinearLayout>

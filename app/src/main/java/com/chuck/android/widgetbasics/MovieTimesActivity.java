@@ -1,20 +1,25 @@
 package com.chuck.android.widgetbasics;
 
-import android.app.Application;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.RemoteViews;
 import android.widget.TextView;
 
 import com.chuck.android.widgetbasics.model.MovieShowing;
+import com.chuck.android.widgetbasics.widget.MovieShowingWidget;
+import com.google.gson.Gson;
 
 import java.util.List;
 import java.util.Random;
 
 public class MovieTimesActivity extends AppCompatActivity {
+    SharedPreferences.Editor editor;
+    SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,30 +32,28 @@ public class MovieTimesActivity extends AppCompatActivity {
         TextView movieTimes = findViewById(R.id.movie_times);
         //Randomize movie showtimes by using random odd/even times
         Random r = new Random();
-        //Problem no append method for remoteviews so appending one string to send to it
-        String widgetMovieTimes = "";
         List<MovieShowing> currentMovieTheaterTimes = MovieShowing.generateMovieTimes(currentTheaterName, r.nextBoolean());
         for (MovieShowing currentMovie : currentMovieTheaterTimes) {
             movieTimes.append(currentMovie.getMovieTitle() + "\n");
-            widgetMovieTimes = widgetMovieTimes + currentMovie.getMovieTitle() + "\n";
             movieTimes.append(currentMovie.getMovieTimes() + "\n\n");
-            widgetMovieTimes = widgetMovieTimes + currentMovie.getMovieTimes() + "\n\n";
         }
 
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
-        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.new_app_widget);
-        remoteViews.setTextViewText(R.id.appwidget_movie_theater, currentTheaterName);
-        remoteViews.setTextViewText(R.id.appwidget_movie_times, widgetMovieTimes);
-        ComponentName thisWidget = new ComponentName(this, NewAppWidget.class);
-        appWidgetManager.updateAppWidget(thisWidget, remoteViews);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        editor = sharedPreferences.edit();
+        Gson gsonIngList = new Gson();
+        String json = gsonIngList.toJson(currentMovieTheaterTimes);
+        editor.putString("json1", json);
+        editor.putString("Movie Theater Name", currentTheaterName);
+        editor.apply();
 
-    }
-    //Kept this in to show how not to do it, call it multiple times erases the existing view
-    public void updateMovieWidget(String widgetText, int textBoxID){
+        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.movie_showing_widget);
+        remoteViews.setTextViewText(R.id.appwidget_movie_theater, currentTheaterName + " showings");
+
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
-        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.new_app_widget);
-        remoteViews.setTextViewText(textBoxID, widgetText);
-        ComponentName thisWidget = new ComponentName(this, NewAppWidget.class);
+        ComponentName thisWidget = new ComponentName(this, MovieShowingWidget.class);
+        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget);
+        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list_movie_screenings);
         appWidgetManager.updateAppWidget(thisWidget, remoteViews);
     }
+
 }
